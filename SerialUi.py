@@ -1,8 +1,10 @@
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QRegExpValidator
+from PyQt5.QtCore import QRegExp
 from PyQt5.QtWidgets import QWidget, QGridLayout, QDesktopWidget, QGroupBox, QFormLayout \
-    , QPushButton, QComboBox
+    , QPushButton, QComboBox, QVBoxLayout, QLabel, QLineEdit
+from Throw_errs import Throw_errs
 
-class SerialUi(QWidget):
+class SerialUi(QWidget, Throw_errs):
     """_summary_
 
     Args:
@@ -18,7 +20,7 @@ class SerialUi(QWidget):
         grid_layout = QGridLayout()  # 设置网格布局3行3列
         # 添加组件
         grid_layout.addWidget(self.set_serial_setting_groupbox(), 0, 0)
-        # grid_layout.addWidget(self.set_serial_send(), 1, 0)
+        grid_layout.addWidget(self.set_serial_send(), 1, 0)
         # grid_layout.addWidget(self.set_project_web(), 2, 0)
         # grid_layout.addLayout(self.set_sensor_curve(), 0, 1)
         # grid_layout.addLayout(self.set_operate_grid(), 1, 1)
@@ -96,7 +98,7 @@ class SerialUi(QWidget):
         # 串口操作 按钮
         self.set_serial_operate = QPushButton('打开串口')
         self.set_serial_operate.setIcon(QIcon('./icon/serial_down.png'))
-        self.setEnabled(False)
+        self.setEnabled(True)
         serial_setting_formlayout.addRow('串口操作  ', self.set_serial_operate)
         
         # 设置控件的间隔距离
@@ -106,5 +108,57 @@ class SerialUi(QWidget):
         
         return serial_setting_gb
 
+    def set_serial_send(self) -> QGroupBox:
+        # 设置串口发送的布局
+        serial_send_gp = QGroupBox('串口发送')
+        serial_send_vlayout = QVBoxLayout()
+        serial_send_gridlayout = QGridLayout()
+        # 最大值输入
+        self.serial_send_maxlabel = QLabel('最大值')
+        serial_send_gridlayout.addWidget(self.serial_send_maxlabel, 0, 0)
+
+        self.serial_max_content = QLineEdit()
+        reg1 = QRegExp('^(?:[1-9][0-9]{0,2}|1000)$')  # 0-1000
+        reg1_validator = QRegExpValidator(reg1, self.serial_max_content)
+        self.serial_max_content.setValidator(reg1_validator)
+        serial_send_gridlayout.addWidget(self.serial_max_content, 0, 1)
+
+        self.serial_send = QPushButton('发送')
+        serial_send_gridlayout.addWidget(self.serial_send, 0, 2)
+        # 最小值输入
+        self.serial_send_minlabel = QLabel('最小值')
+        serial_send_gridlayout.addWidget(self.serial_send_minlabel, 1, 0)
+
+        self.serial_min_content = QLineEdit()
+        reg2 = QRegExp('^(?:[1-9][0-9]{0,2}|1000)$')  # 0-1000
+        reg2_validator = QRegExpValidator(reg2, self.serial_min_content)
+        self.serial_min_content.setValidator(reg2_validator)
+        serial_send_gridlayout.addWidget(self.serial_min_content, 1, 1)
+
+        self.serial_send = QPushButton('发送')
+        serial_send_gridlayout.addWidget(self.serial_send, 1, 2)
+
+        # 比较大小
+        self.serial_send.clicked.connect(lambda: self.validate_serial_range(self.serial_max_content, self.serial_min_content))
+
+        # 时间范围
+        self.serial_send_timelabel = QLabel('时间范围')
+        serial_send_gridlayout.addWidget(self.serial_send_timelabel, 2, 0)
+
+        self.serial_time_content = QLineEdit()
+        serial_send_gridlayout.addWidget(self.serial_time_content, 2, 1)
+
+        self.serial_send = QPushButton('发送')
+        serial_send_gridlayout.addWidget(self.serial_send, 2, 2)
+
+        serial_send_vlayout.addLayout(serial_send_gridlayout)
+        serial_send_gp.setLayout(serial_send_vlayout)
+        serial_send_gp.setFixedWidth(250)  # 设置固定宽度
+
+        return serial_send_gp
+
         
+
+
+
         
