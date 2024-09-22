@@ -1,8 +1,9 @@
-from PyQt5.QtGui import QIcon, QRegExpValidator
-from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QIcon, QRegExpValidator, QFont
+from PyQt5.QtCore import QRegExp, QTimer, QDateTime
 from PyQt5.QtWidgets import QWidget, QGridLayout, QDesktopWidget, QGroupBox, QFormLayout \
-    , QPushButton, QComboBox, QVBoxLayout, QLabel, QLineEdit
+    , QPushButton, QComboBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox
 from Throw_errs import Throw_errs
+from qwt import QwtPlot, QwtPlotCurve, QwtLegend
 
 class SerialUi(QWidget, Throw_errs):
     """_summary_
@@ -21,17 +22,17 @@ class SerialUi(QWidget, Throw_errs):
         # 添加组件
         grid_layout.addWidget(self.set_serial_setting_groupbox(), 0, 0)
         grid_layout.addWidget(self.set_serial_send(), 1, 0)
-        # grid_layout.addWidget(self.set_project_web(), 2, 0)
-        # grid_layout.addLayout(self.set_sensor_curve(), 0, 1)
-        # grid_layout.addLayout(self.set_operate_grid(), 1, 1)
-        # grid_layout.addLayout(self.set_serial_status(), 2, 1)
-        # grid_layout.addLayout(self.set_sensor_setting(), 0, 2)
-        # grid_layout.addLayout(self.set_check_status(), 1, 2)
-        # grid_layout.addLayout(self.set_now_time(), 2, 2)
+        grid_layout.addWidget(self.set_project_info(), 2, 0)
+        grid_layout.addWidget(self.set_sensor_curve(), 0, 1)
+        grid_layout.addWidget(self.set_operate_grid(), 1, 1)
+        grid_layout.addWidget(self.set_serial_status(), 2, 1)
+        grid_layout.addWidget(self.set_sensor_setting(), 0, 2)
+        grid_layout.addWidget(self.set_check_status(), 1, 2)
+        grid_layout.addWidget(self.set_now_time(), 2, 2)
         # 设置布局grid_layout
         self.setLayout(grid_layout)
         # 设置窗口大小
-        self.resize(1500, 1000)
+        self.resize(900, 500)
         # 设置窗口图标
         self.setWindowIcon(QIcon("./icon/window_gas.png"))
         # 窗口显示在中心
@@ -52,11 +53,21 @@ class SerialUi(QWidget, Throw_errs):
         # 显示到屏幕中心
         qr.moveCenter(cp)
         self.move(qr.topLeft())
+
+    def showtime(self):
+        """
+            显示当前时间
+        """
+        time_display = QDateTime.currentDateTime().toString('yyyy-MM-dd hh:mm:ss dddd')
+        self.set_timer.setText(time_display)
+
     
     # 串口设置区
     def set_serial_setting_groupbox(self) -> QGroupBox:
         # 设置一个 串口设置 分组框
         serial_setting_gb = QGroupBox('串口设置')
+        # 设置宽度高度
+        # serial_setting_gb.setFixedSize(200, 280)
         # 创建 串口设置 分组框内的布局管理器
         serial_setting_formlayout = QFormLayout()
         
@@ -98,11 +109,11 @@ class SerialUi(QWidget, Throw_errs):
         # 串口操作 按钮
         self.set_serial_operate = QPushButton('打开串口')
         self.set_serial_operate.setIcon(QIcon('./icon/serial_down.png'))
-        self.setEnabled(True)
+        self.setEnabled(True)  # 设置按钮可用
         serial_setting_formlayout.addRow('串口操作  ', self.set_serial_operate)
         
         # 设置控件的间隔距离
-        serial_setting_formlayout.setSpacing(12)
+        serial_setting_formlayout.setSpacing(10)
         # 设置分组框的布局格式
         serial_setting_gb.setLayout(serial_setting_formlayout)
         
@@ -151,14 +162,168 @@ class SerialUi(QWidget, Throw_errs):
         self.serial_send = QPushButton('发送')
         serial_send_gridlayout.addWidget(self.serial_send, 2, 2)
 
+        serial_send_gridlayout.setSpacing(15)
         serial_send_vlayout.addLayout(serial_send_gridlayout)
         serial_send_gp.setLayout(serial_send_vlayout)
-        serial_send_gp.setFixedWidth(250)  # 设置固定宽度
+        # serial_send_gp.setFixedWidth(250)  # 设置固定宽度
 
         return serial_send_gp
+    
+    def set_project_info(self) -> QGroupBox:
+        # 设置项目信息
+        project_info_gp = QGroupBox()
+        project_info_hlayout = QHBoxLayout()
+        project_info_gridlayout = QGridLayout()
 
+        self.icon_label = QLabel()
+        self.icon = QIcon('./icon/author.png')
+        self.icon_label.setPixmap(self.icon.pixmap(20, 20))
+
+        self.project_author = QLabel('Author: XiaoShuai')
+        self.project_version = QLabel('Version: 1.0')
+
+        project_info_gridlayout.addWidget(self.icon_label, 0, 0)
+        project_info_gridlayout.addWidget(self.project_author, 0, 1)
+        project_info_gridlayout.addWidget(self.project_version, 0, 2)
+        project_info_gridlayout.setSpacing(10)  # 设置网格布局的间距
+
+        project_info_hlayout.addLayout(project_info_gridlayout)
+        project_info_gp.setLayout(project_info_hlayout)
+
+        return project_info_gp
         
+    def set_sensor_setting(self) -> QGroupBox:
+        # 设置传感器设置
+        sensor_setting_gp = QGroupBox('传感器设置')
+        sensor_setting_vlayout = QVBoxLayout()
+        sensor_setting_gridlayout = QGridLayout()
 
+        # 约束条件
+        reg = QRegExp('^\\d+$')  # 正则表达式
 
+        for i in range(1, 9):
+            sensor_checkbox = QCheckBox(f'Sensor {i}')
+            sensor_edit = QLineEdit()
+            sensor_edit.setText('0')
 
+            sensor_setting_gridlayout.addWidget(sensor_checkbox, i - 1, 0)
+            reg_validator = QRegExpValidator(reg, sensor_edit)
+            sensor_edit.setValidator(reg_validator)    
+            sensor_setting_gridlayout.addWidget(sensor_edit, i - 1, 1)
         
+        self.sensor_check_all = QCheckBox('All')
+        sensor_setting_gridlayout.addWidget(self.sensor_check_all, 8, 0)
+        sensor_setting_vlayout.addLayout(sensor_setting_gridlayout)
+        sensor_setting_vlayout.setSpacing(10)  # 设置网格布局的间距
+        sensor_setting_gp.setLayout(sensor_setting_vlayout)
+
+        return sensor_setting_gp
+    
+    def set_check_status(self) -> QGroupBox:
+        # 设置查看信息一栏
+        check_status_gp = QGroupBox('传感器状态')
+        check_status_vlayout = QVBoxLayout()
+        check_status_gridlayout = QGridLayout()
+        # 传感器温度查看一栏
+        self.check_temperature = QLineEdit()
+        check_status_gridlayout.addWidget(self.check_temperature, 0, 0)
+        self.symbol_temperature = QLabel('℃')
+        check_status_gridlayout.addWidget(self.symbol_temperature, 0, 1)
+        self.check_button = QPushButton('查看')
+        check_status_gridlayout.addWidget(self.check_button, 0, 2)
+        # 传感器湿度查看一栏
+        self.check_humidity = QLineEdit()
+        check_status_gridlayout.addWidget(self.check_humidity, 1, 0)
+        self.symbol_humidity = QLabel('%')
+        check_status_gridlayout.addWidget(self.symbol_humidity, 1, 1)
+        self.check_button = QPushButton('查看')
+        check_status_gridlayout.addWidget(self.check_button, 1, 2)
+
+        check_status_vlayout.addLayout(check_status_gridlayout)
+        check_status_vlayout.setSpacing(10)  # 设置网格布局的间距
+        check_status_gp.setLayout(check_status_vlayout)
+        
+        return check_status_gp
+
+    def set_now_time(self) -> QGroupBox:
+        # 当前时间查看一栏
+        now_time_gp = QGroupBox()
+        now_time_formlayout = QFormLayout()
+        # 当前时间 标签
+        self.set_timer = QLabel(self)
+        timer = QTimer(self)
+        timer.timeout.connect(self.showtime)
+        timer.start()
+        now_time_formlayout.addRow(self.set_timer)
+
+        now_time_gp.setLayout(now_time_formlayout)
+        
+        return now_time_gp
+
+    def set_operate_grid(self) -> QGroupBox:
+        # 操作一栏
+        operate_gp = QGroupBox('操作栏')
+        operate_gridlayout = QGridLayout()
+        # 操作按钮
+        self.open_collect_button = QPushButton('开始采集')
+        operate_gridlayout.addWidget(self.open_collect_button, 0, 0)
+        # 设置按钮的长宽
+        self.open_collect_button.setFixedSize(100, 65)
+
+        self.close_collect_button = QPushButton('停止采集')
+        operate_gridlayout.addWidget(self.close_collect_button, 0, 1)
+        self.close_collect_button.setFixedSize(100, 65)
+
+        self.clear_data_button = QPushButton('清空数据')
+        operate_gridlayout.addWidget(self.clear_data_button, 0, 2)
+        self.clear_data_button.setFixedSize(100, 65)
+
+        self.save_data_button = QPushButton('保存数据')
+        operate_gridlayout.addWidget(self.save_data_button, 0, 3)
+        self.save_data_button.setFixedSize(100, 65)
+
+        operate_gp.setLayout(operate_gridlayout)
+
+        return operate_gp
+
+    def set_serial_status(self) -> QGroupBox:
+        # 状态一栏
+        status_gp = QGroupBox()
+        status_formlayout = QGridLayout()
+
+        # 已发送 标签
+        self.sent_count_num = 0
+        self.serial_send = QLabel(f"已发送：{self.sent_count_num}")
+        status_formlayout.addWidget(self.serial_send, 0, 0)
+
+        # 已接收 标签
+        self.receive_count_num = 0
+        self.serial_receive = QLabel(f"已接收：{self.receive_count_num}")
+        status_formlayout.addWidget(self.serial_receive, 0, 1)
+        status_gp.setLayout(status_formlayout)
+
+        return status_gp
+
+    def set_sensor_curve(self) -> QGroupBox:
+        # 传感器实时曲线
+        sensor_curve_gp = QGroupBox()
+        sensor_curve_formlayout = QGridLayout()
+
+        self.sensor_curve = QwtPlot()
+        self.sensor_curve.setMinimumSize(600, 320)
+        self.sensor_curve.setFont(QFont("Times New Roman"))
+        self.sensor_curve.setTitle("传感器实时曲线")
+        self.sensor_curve.setAxisTitle(QwtPlot.xBottom, "Time/s")
+        self.sensor_curve.setAxisFont(QwtPlot.xBottom, QFont("Times New Roman", 10))
+        self.sensor_curve.setAxisTitle(QwtPlot.yLeft, "Value/KΩ")
+        self.sensor_curve.setAxisFont(QwtPlot.yLeft, QFont("Times New Roman", 10))
+        self.sensor_curve.insertLegend(QwtLegend(), QwtPlot.BottomLegend)
+
+        self.sensor_xdata = [1, 2, 3, 4, 5]
+        self.sensor_ydata = [2, 4, 6, 8, 10]
+        QwtPlotCurve.make(self.sensor_xdata, self.sensor_ydata, plot=self.sensor_curve, linecolor="blue", antialiased=True)
+
+        sensor_curve_formlayout.addWidget(self.sensor_curve, 0, 0)
+        sensor_curve_gp.setLayout(sensor_curve_formlayout)
+        
+        return sensor_curve_gp
