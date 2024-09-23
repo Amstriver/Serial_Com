@@ -101,15 +101,10 @@ class SerialUi(QWidget, Throw_errs):
         self.set_odd_check.addItems(['None', 'Odd', 'Even'])
         serial_setting_formlayout.addRow('校验位  ', self.set_odd_check)
         
-        # 显示栏 下拉菜单
-        self.set_display_bar = QComboBox(serial_setting_gb)
-        self.set_display_bar.addItems(['whiteblack', 'blackwhite', 'blackgreen'])
-        serial_setting_formlayout.addRow('显示颜色  ', self.set_display_bar)
-        
         # 串口操作 按钮
         self.set_serial_operate = QPushButton('打开串口')
         self.set_serial_operate.setIcon(QIcon('./icon/serial_down.png'))
-        self.setEnabled(True)  # 设置按钮可用
+        self.set_serial_operate.setEnabled(False)  # 设置按钮可用
         serial_setting_formlayout.addRow('串口操作  ', self.set_serial_operate)
         
         # 设置控件的间隔距离
