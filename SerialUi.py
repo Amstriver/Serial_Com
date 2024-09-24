@@ -1,7 +1,7 @@
 from PyQt5.QtGui import QIcon, QRegExpValidator, QFont
 from PyQt5.QtCore import QRegExp, QTimer, QDateTime
 from PyQt5.QtWidgets import QWidget, QGridLayout, QDesktopWidget, QGroupBox, QFormLayout \
-    , QPushButton, QComboBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox
+    , QPushButton, QComboBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QTextBrowser
 from Throw_errs import Throw_errs
 from qwt import QwtPlot, QwtPlotCurve, QwtLegend
 
@@ -98,7 +98,7 @@ class SerialUi(QWidget, Throw_errs):
         
         # 奇偶校验 下拉菜单
         self.set_odd_check = QComboBox(serial_setting_gb)
-        self.set_odd_check.addItems(['None', 'Odd', 'Even'])
+        self.set_odd_check.addItems(['N', 'O', 'E'])
         serial_setting_formlayout.addRow('校验位  ', self.set_odd_check)
         
         # 串口操作 按钮
@@ -106,7 +106,17 @@ class SerialUi(QWidget, Throw_errs):
         self.set_serial_operate.setIcon(QIcon('./icon/serial_down.png'))
         self.set_serial_operate.setEnabled(False)  # 设置按钮可用
         serial_setting_formlayout.addRow('串口操作  ', self.set_serial_operate)
-        
+
+        # 串口日志 显示框
+        self.receive_log_view = QTextBrowser()
+        self.receive_log_view.setMinimumWidth(200)
+        self.receive_log_view.append('串口日志')
+
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.receive_log_view)
+        serial_setting_formlayout.addRow(vbox)
+        self.receive_log_view.setStyleSheet("QTextEdit {color:black;background-color:white}")
+
         # 设置控件的间隔距离
         serial_setting_formlayout.setSpacing(10)
         # 设置分组框的布局格式
@@ -124,28 +134,29 @@ class SerialUi(QWidget, Throw_errs):
         serial_send_gridlayout.addWidget(self.serial_send_maxlabel, 0, 0)
 
         self.serial_max_content = QLineEdit()
-        reg1 = QRegExp('^(?:[1-9][0-9]{0,2}|1000)$')  # 0-1000
-        reg1_validator = QRegExpValidator(reg1, self.serial_max_content)
-        self.serial_max_content.setValidator(reg1_validator)
+        # reg1 = QRegExp('^(?:[1-9][0-9]{0,2}|1000)$')  # 0-1000
+        # reg1_validator = QRegExpValidator(reg1, self.serial_max_content)
+        # self.serial_max_content.setValidator(reg1_validator)
         serial_send_gridlayout.addWidget(self.serial_max_content, 0, 1)
 
-        self.serial_send = QPushButton('发送')
-        serial_send_gridlayout.addWidget(self.serial_send, 0, 2)
+        self.serial_send_max = QPushButton('发送')
+        serial_send_gridlayout.addWidget(self.serial_send_max, 0, 2)
         # 最小值输入
         self.serial_send_minlabel = QLabel('最小值')
         serial_send_gridlayout.addWidget(self.serial_send_minlabel, 1, 0)
 
         self.serial_min_content = QLineEdit()
-        reg2 = QRegExp('^(?:[1-9][0-9]{0,2}|1000)$')  # 0-1000
-        reg2_validator = QRegExpValidator(reg2, self.serial_min_content)
-        self.serial_min_content.setValidator(reg2_validator)
+        # reg2 = QRegExp('^(?:[1-9][0-9]{0,2}|1000)$')  # 0-1000
+        # reg2_validator = QRegExpValidator(reg2, self.serial_min_content)
+        # self.serial_min_content.setValidator(reg2_validator)
         serial_send_gridlayout.addWidget(self.serial_min_content, 1, 1)
 
-        self.serial_send = QPushButton('发送')
-        serial_send_gridlayout.addWidget(self.serial_send, 1, 2)
+        self.serial_send_min = QPushButton('发送')
+        serial_send_gridlayout.addWidget(self.serial_send_min, 1, 2)
 
         # 比较大小
-        self.serial_send.clicked.connect(lambda: self.validate_serial_range(self.serial_max_content, self.serial_min_content))
+        # self.serial_send_max.clicked.connect(lambda: self.validate_serial_range(self.serial_max_content, self.serial_min_content))
+        # self.serial_send_min.clicked.connect(lambda: self.validate_serial_range(self.serial_max_content, self.serial_min_content))
 
         # 时间范围
         self.serial_send_timelabel = QLabel('时间范围')
@@ -154,8 +165,13 @@ class SerialUi(QWidget, Throw_errs):
         self.serial_time_content = QLineEdit()
         serial_send_gridlayout.addWidget(self.serial_time_content, 2, 1)
 
-        self.serial_send = QPushButton('发送')
-        serial_send_gridlayout.addWidget(self.serial_send, 2, 2)
+        self.serial_send_time = QPushButton('发送')
+        serial_send_gridlayout.addWidget(self.serial_send_time, 2, 2)
+
+        self.sins_cb_hex_receive = QCheckBox('HEX接收')
+        self.sins_cb_hex_send = QCheckBox('HEX发送')
+        serial_send_gridlayout.addWidget(self.sins_cb_hex_receive, 3, 0)
+        serial_send_gridlayout.addWidget(self.sins_cb_hex_send, 3, 1)
 
         serial_send_gridlayout.setSpacing(15)
         serial_send_vlayout.addLayout(serial_send_gridlayout)
@@ -284,18 +300,31 @@ class SerialUi(QWidget, Throw_errs):
     def set_serial_status(self) -> QGroupBox:
         # 状态一栏
         status_gp = QGroupBox()
-        status_formlayout = QGridLayout()
-
-        # 已发送 标签
-        self.sent_count_num = 0
-        self.serial_send = QLabel(f"已发送：{self.sent_count_num}")
-        status_formlayout.addWidget(self.serial_send, 0, 0)
-
-        # 已接收 标签
-        self.receive_count_num = 0
-        self.serial_receive = QLabel(f"已接收：{self.receive_count_num}")
-        status_formlayout.addWidget(self.serial_receive, 0, 1)
-        status_gp.setLayout(status_formlayout)
+        status_layout = QHBoxLayout()  # 垂直布局，用于包含两个水平布局  
+    
+        # 已发送 一行  
+        sent_hbox = QHBoxLayout()  # 水平布局  
+        self.sent_count_num = 0  
+        self.serial_send_label = QLabel("已发送：")  
+        self.serial_send = QLabel(str(self.sent_count_num))  
+        sent_hbox.addWidget(self.serial_send_label)  
+        sent_hbox.addWidget(self.serial_send)  
+        sent_hbox.addStretch()  # 可选，用于添加一些空白间距  
+    
+        # 已接收 一行  
+        receive_hbox = QHBoxLayout()  # 另一个水平布局  
+        self.receive_count_num = 0  
+        self.serial_receive_label = QLabel("已接收：")  
+        self.serial_receive = QLabel(str(self.receive_count_num))  
+        receive_hbox.addWidget(self.serial_receive_label)  
+        receive_hbox.addWidget(self.serial_receive)  
+        receive_hbox.addStretch()  # 可选，用于添加一些空白间距  
+    
+        # 将两个水平布局添加到垂直布局中  
+        status_layout.addLayout(sent_hbox)  
+        status_layout.addLayout(receive_hbox)  
+    
+        status_gp.setLayout(status_layout)  # 设置组框的布局 
 
         return status_gp
 
