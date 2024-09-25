@@ -235,20 +235,27 @@ class SerialUi(QWidget, Throw_errs):
         check_status_gp = QGroupBox('传感器状态')
         check_status_vlayout = QVBoxLayout()
         check_status_gridlayout = QGridLayout()
-        # 传感器温度查看一栏
-        self.check_temperature = QLineEdit()
-        check_status_gridlayout.addWidget(self.check_temperature, 0, 0)
+        # 设置传感器温度
+        self.set_temperature = QLineEdit()
+        check_status_gridlayout.addWidget(self.set_temperature, 0, 0)
         self.symbol_temperature = QLabel('℃')
         check_status_gridlayout.addWidget(self.symbol_temperature, 0, 1)
-        self.check_button = QPushButton('查看')
-        check_status_gridlayout.addWidget(self.check_button, 0, 2)
-        # 传感器湿度查看一栏
-        self.check_humidity = QLineEdit()
-        check_status_gridlayout.addWidget(self.check_humidity, 1, 0)
-        self.symbol_humidity = QLabel('%')
-        check_status_gridlayout.addWidget(self.symbol_humidity, 1, 1)
+        self.set_button = QPushButton('设置')
+        check_status_gridlayout.addWidget(self.set_button, 0, 2)
+        # 传感器温度查看一栏
+        self.check_temperature = QLineEdit()
+        check_status_gridlayout.addWidget(self.check_temperature, 1, 0)
+        self.symbol_temperature = QLabel('℃')
+        check_status_gridlayout.addWidget(self.symbol_temperature, 1, 1)
         self.check_button = QPushButton('查看')
         check_status_gridlayout.addWidget(self.check_button, 1, 2)
+        # 传感器湿度查看一栏
+        self.check_humidity = QLineEdit()
+        check_status_gridlayout.addWidget(self.check_humidity, 2, 0)
+        self.symbol_humidity = QLabel('%')
+        check_status_gridlayout.addWidget(self.symbol_humidity, 2, 1)
+        self.check_button = QPushButton('查看')
+        check_status_gridlayout.addWidget(self.check_button, 2, 2)
 
         check_status_vlayout.addLayout(check_status_gridlayout)
         check_status_vlayout.setSpacing(10)  # 设置网格布局的间距
