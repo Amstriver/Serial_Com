@@ -128,7 +128,7 @@ class SerialSetting(SerialUi):
     # 发送
     def send_text(self, send_string) -> None:
         if self.serial.isOpen():
-            # 非空字符串
+            # # 非空字符串
             if send_string != '' :
                 # 如果勾选了HEX发送 则以HEX发送 String到Int再到Byte
                 if self.sins_cb_hex_send.isChecked():
@@ -152,8 +152,7 @@ class SerialSetting(SerialUi):
                     single_sent_string = bytes(sent_list)
                 # 否则ASCII发送
                 else:
-                    single_sent_string = (send_string + '\r\n')
-                    single_sent_string = single_sent_string.encode('UTF-8')
+                    single_sent_string = send_string.encode('utf-8')
 
                 # 获得发送字节数
                 sent_num = self.serial.write(single_sent_string)
@@ -181,7 +180,7 @@ class SerialSetting(SerialUi):
     def receive_data(self) -> None:
         try:
             # inWaiting()：返回接收缓存中的字节数
-            num = self.serial.inWaiting()
+            num = self.serial.in_waiting
         except:
             pass
         else:
