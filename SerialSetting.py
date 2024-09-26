@@ -5,6 +5,7 @@ import serial
 from PyQt5.QtWidgets import QMessageBox, QLabel
 from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtCore import QTimer
+from qwt import QwtPlot, QwtPlotCurve
 
 class SerialSetting(SerialUi):
     """
@@ -28,10 +29,15 @@ class SerialSetting(SerialUi):
         # 定时器接收数据
         self.serial_receive_timer = QTimer(self)
         self.serial_receive_timer.timeout.connect(self.receive_data)
-        # 设置串口发送 绑定槽
-        self.serial_send_max.clicked.connect(self.send_max)
-        self.serial_send_min.clicked.connect(self.send_min)
-        self.serial_send_time.clicked.connect(self.send_time)
+        # 设置温度设置 绑定槽
+        self.set_button.clicked.connect(self.setting_temperature)
+
+        # 设置传感器数据显示 绑定槽
+        self.serial_send_max.clicked.connect(self.ser_smax)
+        self.serial_send_min.clicked.connect(self.ser_smin)
+        self.serial_send_time.clicked.connect(self.ser_stime)
+        # 设置开始、关闭采集数据一栏 绑定槽
+        # self.open_collect_button.clicked.connect(self.start_collect)
 
     # 获取端口号
     def get_serial_port(self) -> str:
@@ -163,18 +169,25 @@ class SerialSetting(SerialUi):
             QMessageBox.warning(self, 'Port Warning', '没有可用的串口，请先打开串口！')
             return None
 
-    def send_max(self):
+    def setting_temperature(self) -> None:
         # 获取需要发送的字符串
-        send_string = self.serial_max_content.text()
+        send_string = self.set_temperature.text()
         self.send_text(send_string)
-    def send_min(self):
-        # 获取需要发送的字符串
-        send_string = self.serial_min_content.text()
-        self.send_text(send_string)
-    def send_time(self):
-        # 获取需要发送的字符串
-        send_string = self.serial_time_content.text()
-        self.send_text(send_string)
+
+    # 设置传感器数据 显示布局 按键槽
+    def ser_smax(self) -> None:
+        restrict_mval = self.serial_max_content.text()
+        self.ymax_restrict = restrict_mval
+        self.sensor_curve.setAxisScale(QwtPlot.yLeft, self.ymin_restrict, self.ymax_restrict) 
+    def ser_smin(self) -> None:
+        restrict_mval = self.serial_min_content.text()
+        self.ymin_restrict = restrict_mval
+        self.sensor_curve.setAxisScale(QwtPlot.yLeft, self.ymin_restrict, self.ymax_restrict) 
+    def ser_stime(self) -> None:
+        restrict_mval = self.serial_time_content.text()
+        self.time_restrict = restrict_mval
+        self.sensor_curve.setAxisScale(QwtPlot.xBottom, 0, self.time_restrict)
+
 
     # 接收数据
     def receive_data(self) -> None:
@@ -187,19 +200,19 @@ class SerialSetting(SerialUi):
         	# 接收缓存中有数据
             if num > 0:
             	# 读取所有的字节数
-                data = self.serial.read(num)
-                receive_num = len(data)
+                self.data = self.serial.read(num)
+                receive_num = len(self.data)
                 # HEX显示
                 if self.sins_cb_hex_receive.isChecked():
                     receive_string = ''
-                    for i in range(0, len(data)):
+                    for i in range(0, len(self.data)):
                         # {:X}16进制标准输出形式 02是2位对齐 左补0形式
-                        receive_string = receive_string + '{:02X}'.format(data[i]) + ' '
+                        receive_string = receive_string + '{:02X}'.format(self.data[i]) + ' '
                     self.receive_log_view.append(receive_string)
                     # 让滚动条随着接收一起移动
                     self.receive_log_view.moveCursor(QTextCursor.End)
                 else:
-                    self.receive_log_view.insertPlainText(data.decode('UTF-8'))
+                    self.receive_log_view.insertPlainText((self.data).decode('UTF-8'))
                     self.receive_log_view.moveCursor(QTextCursor.End)
 
                 # 更新已接收字节数
@@ -207,3 +220,9 @@ class SerialSetting(SerialUi):
                 self.serial_receive.setText(str(self.receive_count_num))
             else:
                 pass
+    
+    def start_collect(self) -> None:
+        self.sensor_xdata = [1, 2, 3, 4, 5]
+        self.sensor_ydata = [2, 4, 6, 8, 10]
+        QwtPlotCurve.make(self.sensor_xdata, self.sensor_ydata, plot=self.sensor_curve, linecolor="blue", antialiased=True)
+         

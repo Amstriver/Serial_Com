@@ -125,8 +125,8 @@ class SerialUi(QWidget, Throw_errs):
         return serial_setting_gb
 
     def set_serial_send(self) -> QGroupBox:
-        # 设置串口发送的布局
-        serial_send_gp = QGroupBox('串口发送')
+        # 设置传感器数据显示布局
+        serial_send_gp = QGroupBox('显示调整')
         serial_send_vlayout = QVBoxLayout()
         serial_send_gridlayout = QGridLayout()
         # 最大值输入
@@ -139,7 +139,7 @@ class SerialUi(QWidget, Throw_errs):
         # self.serial_max_content.setValidator(reg1_validator)
         serial_send_gridlayout.addWidget(self.serial_max_content, 0, 1)
 
-        self.serial_send_max = QPushButton('发送')
+        self.serial_send_max = QPushButton('设置')
         serial_send_gridlayout.addWidget(self.serial_send_max, 0, 2)
         # 最小值输入
         self.serial_send_minlabel = QLabel('最小值')
@@ -151,7 +151,7 @@ class SerialUi(QWidget, Throw_errs):
         # self.serial_min_content.setValidator(reg2_validator)
         serial_send_gridlayout.addWidget(self.serial_min_content, 1, 1)
 
-        self.serial_send_min = QPushButton('发送')
+        self.serial_send_min = QPushButton('设置')
         serial_send_gridlayout.addWidget(self.serial_send_min, 1, 2)
 
         # 比较大小
@@ -165,7 +165,7 @@ class SerialUi(QWidget, Throw_errs):
         self.serial_time_content = QLineEdit()
         serial_send_gridlayout.addWidget(self.serial_time_content, 2, 1)
 
-        self.serial_send_time = QPushButton('发送')
+        self.serial_send_time = QPushButton('设置')
         serial_send_gridlayout.addWidget(self.serial_send_time, 2, 2)
 
         self.sins_cb_hex_receive = QCheckBox('HEX接收')
@@ -349,11 +349,7 @@ class SerialUi(QWidget, Throw_errs):
         self.sensor_curve.setAxisTitle(QwtPlot.yLeft, "Value/KΩ")
         self.sensor_curve.setAxisFont(QwtPlot.yLeft, QFont("Times New Roman", 10))
         self.sensor_curve.insertLegend(QwtLegend(), QwtPlot.BottomLegend)
-
-        self.sensor_xdata = [1, 2, 3, 4, 5]
-        self.sensor_ydata = [2, 4, 6, 8, 10]
-        QwtPlotCurve.make(self.sensor_xdata, self.sensor_ydata, plot=self.sensor_curve, linecolor="blue", antialiased=True)
-
+        
         sensor_curve_formlayout.addWidget(self.sensor_curve, 0, 0)
         sensor_curve_gp.setLayout(sensor_curve_formlayout)
         
