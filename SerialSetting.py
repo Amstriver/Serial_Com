@@ -2,10 +2,13 @@ import serial.tools
 import serial.tools.list_ports
 from SerialUi import SerialUi
 import serial
-from PyQt5.QtWidgets import QMessageBox, QLabel
-from PyQt5.QtGui import QIcon, QTextCursor
+from PyQt5.QtWidgets import QMessageBox, QLabel, QFileDialog, QMessageBox
+from PyQt5.QtGui import QIcon, QTextCursor, QPen, QColor
 from PyQt5.QtCore import QTimer
 from qwt import QwtPlot, QwtPlotCurve
+import time
+import csv
+import pandas as pd
 
 class SerialSetting(SerialUi):
     """
@@ -19,6 +22,73 @@ class SerialSetting(SerialUi):
         # self.serial_cfg()
         # 初始化串口 绑定槽
         self.init_serial()
+        # 初始化曲线和数据  
+        self.sensor1_xdata = []  # X轴数据，例如时间戳  
+        self.sensor1_ydata = []  # Y轴数据，接收到的传感器值  
+        self.sensor1_curve_item = QwtPlotCurve()  # QwtPlotCurve对象用于绘图  
+        self.sensor1_curve_item.setPen(QPen(QColor("#FF0000"), 2)) # 红色
+        self.sensor1_curve_item.setTitle('Sensor1')   
+        self.sensor1_curve_item.attach(self.sensor_curve)  # 将曲线附加到plot上
+        self.sensor_curve.replot()  # 初始重绘
+
+        self.sensor2_xdata = []  # X轴数据，例如时间戳.
+        self.sensor2_ydata = []  # Y轴数据，接收到的传感器值.
+        self.sensor2_curve_item = QwtPlotCurve()  # QwtPlotCurve对象用于绘图.
+        self.sensor2_curve_item.setPen(QPen(QColor("#00FF00"), 2)) # 绿色
+        self.sensor2_curve_item.setTitle('Sensor2')
+        self.sensor2_curve_item.attach(self.sensor_curve)  # 将曲线附加到plot上.
+        self.sensor_curve.replot()  # 初始重绘.
+
+        self.sensor3_xdata = []  # X轴数据，例如时间戳.
+        self.sensor3_ydata = []  # Y轴数据，接收到的传感器值.
+        self.sensor3_curve_item = QwtPlotCurve()  # QwtPlotCurve对象用于绘图
+        self.sensor3_curve_item.setPen(QPen(QColor("#0000FF"), 2)) # 蓝色
+        self.sensor3_curve_item.setTitle('Sensor3')
+        self.sensor3_curve_item.attach(self.sensor_curve)  # 将曲线附加到plot上.
+        self.sensor_curve.replot()  # 初始重绘.
+
+        self.sensor4_xdata = []  # X轴数据，例如时间戳.
+        self.sensor4_ydata = []  # Y轴数据，接收到的传感器值.
+        self.sensor4_curve_item = QwtPlotCurve()  # QwtPlotCurve对象用于绘图.
+        self.sensor4_curve_item.setPen(QPen(QColor("#FFFF00"), 2)) # 黄色
+        self.sensor4_curve_item.setTitle('Sensor4')
+        self.sensor4_curve_item.attach(self.sensor_curve)  # 将曲线附加到plot上.
+        self.sensor_curve.replot()  # 初始重绘.
+
+        self.sensor5_xdata = []  # X轴数据，例如时间戳.
+        self.sensor5_ydata = []  # Y轴数据，接收到的传感器值.
+        self.sensor5_curve_item = QwtPlotCurve()  # QwtPlotCurve对象用于绘图.
+        self.sensor5_curve_item.setPen(QPen(QColor("#800080"), 2)) # 紫色
+        self.sensor5_curve_item.setTitle('Sensor5')
+        self.sensor5_curve_item.attach(self.sensor_curve)  # 将曲线附加到plot上.
+        self.sensor_curve.replot()  # 初始重绘.
+
+        self.sensor6_xdata = []  # X轴数据，例如时间戳.
+        self.sensor6_ydata = []  # Y轴数据，接收到的传感器值.
+        self.sensor6_curve_item = QwtPlotCurve()  # QwtPlotCurve对象用于绘图.
+        self.sensor6_curve_item.setPen(QPen(QColor("#00FFFF"), 2)) # 青色
+        self.sensor6_curve_item.setTitle('Sensor6')
+        self.sensor6_curve_item.attach(self.sensor_curve)  # 将曲线附加到plot上.
+        self.sensor_curve.replot()  # 初始重绘.
+
+        self.sensor7_xdata = []  # X轴数据，例如时间戳.
+        self.sensor7_ydata = []  # Y轴数据，接收到的传感器值.
+        self.sensor7_curve_item = QwtPlotCurve()  # QwtPlotCurve对象用于绘图.
+        self.sensor7_curve_item.setData(self.sensor7_xdata, self.sensor7_ydata)
+        self.sensor7_curve_item.setPen(QPen(QColor("#FFA500"), 2)) # 橙色
+        self.sensor7_curve_item.setTitle('Sensor7')
+        self.sensor_curve.replot()  # 初始重绘.
+
+        self.sensor8_xdata = []  # X轴数据，例如时间戳.
+        self.sensor8_ydata = []  # Y轴数据，接收到的传感器值.
+        self.sensor8_curve_item = QwtPlotCurve()  # QwtPlotCurve对象用于绘图.
+        self.sensor8_curve_item.setPen(QPen(QColor("#FFC0CB"), 2)) # 粉色
+        self.sensor8_curve_item.setTitle('Sensor8')
+        self.sensor8_curve_item.attach(self.sensor_curve)  # 将曲线附加到plot上.
+        self.sensor_curve.replot()  # 初始重绘.
+
+        # 初始化开关
+        self.bottom = False
 
     # 初始化串口
     def init_serial(self) -> None:
@@ -36,8 +106,14 @@ class SerialSetting(SerialUi):
         self.serial_send_max.clicked.connect(self.ser_smax)
         self.serial_send_min.clicked.connect(self.ser_smin)
         self.serial_send_time.clicked.connect(self.ser_stime)
-        # 设置开始、关闭采集数据一栏 绑定槽
-        # self.open_collect_button.clicked.connect(self.start_collect)
+        # 设置开始、关闭采集、清空数据、保存数据一栏 绑定槽
+        self.open_collect_button.clicked.connect(self.start_collect)
+        self.close_collect_button.clicked.connect(self.stop_collect)
+        self.clear_data_button.clicked.connect(self.clear_data)
+        self.save_data_button.clicked.connect(self.save_sensor_data)
+        # 设置All checkbox 绑定槽
+        self.sensor_check_all.clicked.connect(self.all_check_box_changed)
+
 
     # 获取端口号
     def get_serial_port(self) -> str:
@@ -174,20 +250,25 @@ class SerialSetting(SerialUi):
         send_string = self.set_temperature.text()
         self.send_text(send_string)
 
-    # 设置传感器数据 显示布局 按键槽
+    # # 设置传感器数据 显示布局 按键槽
     def ser_smax(self) -> None:
+        scale_div = self.sensor_curve.axisScaleDiv(QwtPlot.yLeft)
         restrict_mval = self.serial_max_content.text()
-        self.ymax_restrict = restrict_mval
-        self.sensor_curve.setAxisScale(QwtPlot.yLeft, self.ymin_restrict, self.ymax_restrict) 
+        self.ymax_restrict = float(restrict_mval)
+        self.sensor_curve.setAxisScale(QwtPlot.yLeft, scale_div.lowerBound(), self.ymax_restrict) 
+        self.sensor_curve.replot()
     def ser_smin(self) -> None:
+        scale_div = self.sensor_curve.axisScaleDiv(QwtPlot.yLeft)
         restrict_mval = self.serial_min_content.text()
-        self.ymin_restrict = restrict_mval
-        self.sensor_curve.setAxisScale(QwtPlot.yLeft, self.ymin_restrict, self.ymax_restrict) 
+        self.ymin_restrict = float(restrict_mval)
+        self.sensor_curve.setAxisScale(QwtPlot.yLeft, self.ymin_restrict, scale_div.upperBound()) 
+        self.sensor_curve.replot()
     def ser_stime(self) -> None:
+        scale_div = self.sensor_curve.axisScaleDiv(QwtPlot.xBottom)
         restrict_mval = self.serial_time_content.text()
-        self.time_restrict = restrict_mval
-        self.sensor_curve.setAxisScale(QwtPlot.xBottom, 0, self.time_restrict)
-
+        self.time_restrict = float(restrict_mval)
+        self.sensor_curve.setAxisScale(QwtPlot.xBottom, scale_div.lowerBound(), self.time_restrict)
+        self.sensor_curve.replot()
 
     # 接收数据
     def receive_data(self) -> None:
@@ -212,17 +293,221 @@ class SerialSetting(SerialUi):
                     # 让滚动条随着接收一起移动
                     self.receive_log_view.moveCursor(QTextCursor.End)
                 else:
-                    self.receive_log_view.insertPlainText((self.data).decode('UTF-8'))
+                    self.value = (self.data).decode('UTF-8')
+                    self.receive_log_view.insertPlainText(self.value)
                     self.receive_log_view.moveCursor(QTextCursor.End)
 
                 # 更新已接收字节数
                 self.receive_count_num += receive_num
                 self.serial_receive.setText(str(self.receive_count_num))
+                if self.bottom is True:
+                    self.update_sensor_data()
             else:
                 pass
-    
+    # 设置开始、关闭采集、清空数据、保存数据一栏
     def start_collect(self) -> None:
-        self.sensor_xdata = [1, 2, 3, 4, 5]
-        self.sensor_ydata = [2, 4, 6, 8, 10]
-        QwtPlotCurve.make(self.sensor_xdata, self.sensor_ydata, plot=self.sensor_curve, linecolor="blue", antialiased=True)
-         
+        """开始采集"""
+        self.start_time = time.time()  
+        self.open_collect_button.setEnabled(False)
+        self.bottom = True
+    
+    def stop_collect(self) -> None:
+        """"关闭采集"""
+        self.open_collect_button.setEnabled(True)
+        self.bottom = False
+
+    def clear_data(self) -> None:
+        """清空数据"""
+        num_sensors = 8
+        for i in range(1, num_sensors + 1):  
+            # 初始化X轴和Y轴数据  
+            xdata_var_name = f'sensor{i}_xdata'  
+            ydata_var_name = f'sensor{i}_ydata'  
+            setattr(self, xdata_var_name, [])  # X轴数据，例如时间戳  
+            setattr(self, ydata_var_name, [])  # Y轴数据，接收到的传感器值  
+            
+            # 设置曲线数据  
+            curve_item_var_name = f'sensor{i}_curve_item'  
+            curve_item = getattr(self, curve_item_var_name)  # 假设curve_item已经是QwtPlotCurve的实例  
+            curve_item.setData([], [])  # 设置曲线数据为空，等待后续更新
+        self.sensor_curve.replot()
+
+    def update_sensor_data(self) -> None:  
+        # 解析串口数据  
+        data_str = self.value.strip()  # 去除首尾空格和换行符  
+        if data_str:  # 如果数据不为空  
+            sensor_data = data_str.split('/')  # 按'/'分割数据  
+            for data in sensor_data:  
+                parts = data.split('y')  # 按'y'分割数据和传感器标识  
+                if len(parts) == 2:  
+                    sensor_id = int(parts[0])  # 传感器ID  
+                    sensor_value = float(parts[1])  # 传感器值  
+                    # 根据传感器ID更新对应的数据和曲线  
+                    self.update_sensor_curve(sensor_id, sensor_value)  
+    
+    def update_sensor_curve(self, sensor_id: int, sensor_value: float) -> None:  
+        current_time = time.time() - self.start_time  # 时间戳  
+        # 根据sensor_id选择对应的数据列表和曲线对象进行更新  
+        if sensor_id == 1 and self.sensor_check1.isChecked():  
+            self.sensor1_xdata.append(current_time)  
+            self.sensor1_ydata.append(sensor_value)
+            self.sensor_editone.setText(str(sensor_value))  # 回显数据到文本框
+            self.sensor1_curve_item.setData(self.sensor1_xdata, self.sensor1_ydata) # 更新曲线数据
+        elif sensor_id == 2 and self.sensor_check2.isChecked():  
+            self.sensor2_xdata.append(current_time)
+            self.sensor2_ydata.append(sensor_value)
+            self.sensor_edittwo.setText(str(sensor_value))
+            self.sensor2_curve_item.setData(self.sensor2_xdata, self.sensor2_ydata)
+        elif sensor_id == 3 and self.sensor_check3.isChecked():
+            self.sensor3_xdata.append(current_time)
+            self.sensor3_ydata.append(sensor_value)
+            self.sensor_editthree.setText(str(sensor_value))
+            self.sensor3_curve_item.setData(self.sensor3_xdata, self.sensor3_ydata)
+        elif sensor_id == 4 and self.sensor_check4.isChecked():
+            self.sensor4_xdata.append(current_time)
+            self.sensor4_ydata.append(sensor_value)
+            self.sensor_editfour.setText(str(sensor_value))
+            self.sensor4_curve_item.setData(self.sensor4_xdata, self.sensor4_ydata)
+        elif sensor_id == 5 and self.sensor_check5.isChecked():
+            self.sensor5_xdata.append(current_time)
+            self.sensor5_ydata.append(sensor_value)
+            self.sensor_editfive.setText(str(sensor_value))
+            self.sensor5_curve_item.setData(self.sensor5_xdata, self.sensor5_ydata)
+        elif sensor_id == 6 and self.sensor_check6.isChecked():
+            self.sensor6_xdata.append(current_time)
+            self.sensor6_ydata.append(sensor_value)
+            self.sensor_editsix.setText(str(sensor_value))
+            self.sensor6_curve_item.setData(self.sensor6_xdata, self.sensor6_ydata)
+        elif sensor_id == 7 and self.sensor_check7.isChecked():
+            self.sensor7_xdata.append(current_time)
+            self.sensor7_ydata.append(sensor_value)
+            self.sensor_editseven.setText(str(sensor_value))
+            self.sensor7_curve_item.attach(self.sensor_curve)  # 将曲线附加到plot上.
+        elif sensor_id == 8 and self.sensor_check8.isChecked():
+            self.sensor8_xdata.append(current_time)
+            self.sensor8_ydata.append(sensor_value)
+            self.sensor_editeight.setText(str(sensor_value))
+            self.sensor8_curve_item.setData(self.sensor8_xdata, self.sensor8_ydata)
+        self.sensor_curve.replot() 
+
+    def save_sensor_data(self) -> None:  
+        """保存传感器数据""" 
+        # 弹窗选择保存的文件类型和路径  
+        file_dialog = QFileDialog(self)  
+        file_dialog.setFileMode(QFileDialog.AnyFile)  
+        file_dialog.setNameFilter("CSV Files (*.csv);;Text Files (*.txt);;Excel Files (*.xlsx)")  
+        if file_dialog.exec_():  
+            selected_files = file_dialog.selectedFiles()  
+            file_path = selected_files[0]  
+            file_type = file_dialog.selectedNameFilter()  
+            
+            # 根据文件类型保存数据  
+            if 'CSV' in file_type:  
+                self.save_data_as_csv(file_path)  
+            # elif 'Text' in file_type:  
+            #     self.save_data_as_txt(file_path)  
+            # elif 'Excel' in file_type:  
+            #     self.save_data_as_xlsx(file_path)  
+            else:  
+                QMessageBox.warning(self, 'Warning', 'Unsupported file type.')  
+                return  
+            
+            QMessageBox.information(self, 'Information', f'Data saved to {file_path}')  
+  
+    def save_data_as_csv(self, file_path: str) -> None:  
+        """将数据保存为CSV文件，仅保存被勾选的传感器的数据"""  
+        with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:  
+            writer = csv.writer(csvfile)  
+            # 写入表头  
+            writer.writerow(['Time'] + [f'Sensor {i+1} Value' for i in range(8)])  
+    
+            # 所有传感器的时间戳是相同的（同时采样）  
+            # 找到最长的数据列表来确定循环次数  
+            max_length = 0  
+            for i in range(1, 9):  
+                xdata_var_name = f'sensor{i}_xdata'  
+                ydata_var_name = f'sensor{i}_ydata'  
+                xdata = getattr(self, xdata_var_name)  
+                ydata = getattr(self, ydata_var_name)  
+                max_length = max(max_length, len(xdata), len(ydata))  
+            # 遍历时间戳，对于每个时间戳，检查是否有对应传感器的数据  
+            for t in range(max_length):  
+                row = [None] * (1 + 8)  # 后面8个位置留给传感器值  
+                row[0] = t  # 这里假设时间戳是从0开始的整数索引（实际实现中可能需要调整）  
+    
+                for i in range(1, 9):  
+                    xdata_var_name = f'sensor{i}_xdata'  
+                    ydata_var_name = f'sensor{i}_ydata'  
+                    xdata = getattr(self, xdata_var_name)  
+                    ydata = getattr(self, ydata_var_name)  
+    
+                    check_box_var_name = f'sensor_check{i}'  
+                    check_box = getattr(self, check_box_var_name)  
+    
+                    if check_box.isChecked() and t < len(ydata):  
+                        row[i] = ydata[t]  # 如果复选框被勾选且有数据，则保存该数据   
+
+            writer.writerow(row) 
+    
+    # def save_data_as_txt(self, file_path: str) -> None:  
+    #     """将数据保存为TXT文件，仅保存被勾选的传感器的数据"""  
+    #     with open(file_path, 'w', encoding='utf-8') as txtfile:  
+    #         # 为每个传感器都写一个表头  
+    #         txtfile.write('Time')  
+    #         for i in range(1, 9):  
+    #             check_box_var_name = f'sensor_check{i}'  
+    #             check_box = getattr(self, check_box_var_name)  
+    #             if check_box.isChecked():  
+    #                 txtfile.write(f',Sensor {i} Value')  
+    #         txtfile.write('\n')  
+    
+    #         # 找到最长的数据长度  
+    #         max_length = 0  
+    #         for i in range(1, 9):  
+    #             xdata_var_name = f'sensor{i}_xdata'  
+    #             xdata = getattr(self, xdata_var_name)  
+    #             max_length = max(max_length, len(xdata))  
+    
+    #         # 遍历时间戳，保存数据  
+    #         for t in range(max_length):  
+    #             row = [str(t)]  # 时间戳是从0开始的整数  
+    #             for i in range(1, 9):  
+    #                 check_box_var_name = f'sensor_check{i}'  
+    #                 xdata_var_name = f'sensor{i}_xdata'  
+    #                 ydata_var_name = f'sensor{i}_ydata'  
+    #                 check_box = getattr(self, check_box_var_name)  
+    #                 xdata = getattr(self, xdata_var_name)  
+    #                 ydata = getattr(self, ydata_var_name)  
+    
+    #                 if check_box.isChecked() and t < len(ydata):  
+    #                     row.append(str(ydata[t]))  
+    #                 else:  
+    #                     row.append('')  # 如果未勾选或数据不足，则添加空字符串  
+    
+    #             txtfile.write(','.join(row) + '\n')
+    
+    # def save_data_as_xlsx(self, file_path: str) -> None:  
+    #     """将数据保存为XLSX文件"""  
+    #     df = pd.DataFrame({'Time': self.sensor_xdata, 'Sensor Value': self.sensor_ydata})  
+    #     df.to_excel(file_path, index=False)
+
+    def all_check_box_changed(self) -> None:
+        """全选或全不选复选框状态改变时调用"""
+        if self.sensor_check_all.isChecked():
+            self.sensor_check1.setChecked(True)
+            self.sensor_check2.setChecked(True)
+            self.sensor_check3.setChecked(True)
+            self.sensor_check4.setChecked(True)
+            self.sensor_check5.setChecked(True)
+            self.sensor_check6.setChecked(True)
+            self.sensor_check7.setChecked(True)
+            self.sensor_check8.setChecked(True)
+        else:
+            self.sensor_check1.setChecked(False)
+            self.sensor_check2.setChecked(False)
+            self.sensor_check3.setChecked(False)
+            self.sensor_check4.setChecked(False)
+            self.sensor_check5.setChecked(False)
+            self.sensor_check6.setChecked(False)
+            self.sensor_check7.setChecked(False)
+            self.sensor_check8.setChecked(False)
