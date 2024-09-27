@@ -3,7 +3,7 @@ from PyQt5.QtCore import QRegExp, QTimer, QDateTime
 from PyQt5.QtWidgets import QWidget, QGridLayout, QDesktopWidget, QGroupBox, QFormLayout \
     , QPushButton, QComboBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QTextBrowser
 from Throw_errs import Throw_errs
-from qwt import QwtPlot, QwtPlotCurve, QwtLegend
+from qwt import QwtPlot, QwtLegend
 
 class SerialUi(QWidget, Throw_errs):
     """_summary_
@@ -111,6 +111,7 @@ class SerialUi(QWidget, Throw_errs):
         self.receive_log_view = QTextBrowser()
         self.receive_log_view.setMinimumWidth(200)
         self.receive_log_view.append('串口日志')
+        self.receive_log_view.append('')
 
         vbox = QVBoxLayout()
         vbox.addWidget(self.receive_log_view)
@@ -209,23 +210,59 @@ class SerialUi(QWidget, Throw_errs):
         sensor_setting_vlayout = QVBoxLayout()
         sensor_setting_gridlayout = QGridLayout()
 
-        # 约束条件
-        reg = QRegExp('^\\d+$')  # 正则表达式
+        # for i in range(1, 9):
+        #     sensor_checkbox = QCheckBox(f'Sensor {i}')
+        #     sensor_edit = QLineEdit()
+        #     sensor_edit.setText('0')
 
-        for i in range(1, 9):
-            sensor_checkbox = QCheckBox(f'Sensor {i}')
-            sensor_edit = QLineEdit()
-            sensor_edit.setText('0')
+        #     sensor_setting_gridlayout.addWidget(sensor_checkbox, i - 1, 0)   
+        #     sensor_setting_gridlayout.addWidget(sensor_edit, i - 1, 1)
+        # 修改了布局，方便调用
+        self.sensor_check1 = QCheckBox('Sensor 1')
+        self.sensor_editone = QLineEdit()
+        sensor_setting_gridlayout.addWidget(self.sensor_check1, 0, 0)   
+        sensor_setting_gridlayout.addWidget(self.sensor_editone, 0, 1)
 
-            sensor_setting_gridlayout.addWidget(sensor_checkbox, i - 1, 0)
-            reg_validator = QRegExpValidator(reg, sensor_edit)
-            sensor_edit.setValidator(reg_validator)    
-            sensor_setting_gridlayout.addWidget(sensor_edit, i - 1, 1)
+        self.sensor_check2 = QCheckBox('Sensor 2')
+        self.sensor_edittwo = QLineEdit()
+        sensor_setting_gridlayout.addWidget(self.sensor_check2, 1, 0)
+        sensor_setting_gridlayout.addWidget(self.sensor_edittwo, 1, 1)
+
+        self.sensor_check3 = QCheckBox('Sensor 3')
+        self.sensor_editthree = QLineEdit()
+        sensor_setting_gridlayout.addWidget(self.sensor_check3, 2, 0)
+        sensor_setting_gridlayout.addWidget(self.sensor_editthree, 2, 1)
+
+        self.sensor_check4 = QCheckBox('Sensor 4')
+        self.sensor_editfour = QLineEdit()
+        sensor_setting_gridlayout.addWidget(self.sensor_check4, 3, 0)
+        sensor_setting_gridlayout.addWidget(self.sensor_editfour, 3, 1)
+
+        self.sensor_check5 = QCheckBox('Sensor 5')
+        self.sensor_editfive = QLineEdit()
+        sensor_setting_gridlayout.addWidget(self.sensor_check5, 4, 0)
+        sensor_setting_gridlayout.addWidget(self.sensor_editfive, 4, 1)
+
+        self.sensor_check6 = QCheckBox('Sensor 6')
+        self.sensor_editsix = QLineEdit()
+        sensor_setting_gridlayout.addWidget(self.sensor_check6, 5, 0)
+        sensor_setting_gridlayout.addWidget(self.sensor_editsix, 5, 1)
+
+        self.sensor_check7 = QCheckBox('Sensor 7')
+        self.sensor_editseven = QLineEdit()
+        sensor_setting_gridlayout.addWidget(self.sensor_check7, 6, 0)
+        sensor_setting_gridlayout.addWidget(self.sensor_editseven, 6, 1)
+
+        self.sensor_check8 = QCheckBox('Sensor 8')
+        self.sensor_editeight = QLineEdit()
+        sensor_setting_gridlayout.addWidget(self.sensor_check8, 7, 0)
+        sensor_setting_gridlayout.addWidget(self.sensor_editeight, 7, 1)
         
         self.sensor_check_all = QCheckBox('All')
         sensor_setting_gridlayout.addWidget(self.sensor_check_all, 8, 0)
+
         sensor_setting_vlayout.addLayout(sensor_setting_gridlayout)
-        sensor_setting_vlayout.setSpacing(10)  # 设置网格布局的间距
+        sensor_setting_vlayout.setSpacing(12)  # 设置网格布局的间距
         sensor_setting_gp.setLayout(sensor_setting_vlayout)
 
         return sensor_setting_gp
