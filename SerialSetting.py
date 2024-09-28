@@ -8,7 +8,6 @@ from PyQt5.QtCore import QTimer
 from qwt import QwtPlot, QwtPlotCurve
 import time
 import csv
-import pandas as pd
 
 class SerialSetting(SerialUi):
     """
@@ -210,9 +209,9 @@ class SerialSetting(SerialUi):
 
             # 更改已发送和已接收字数
             self.sent_count_num = 0
-            self.serial_send = QLabel(f"已发送：{self.sent_count_num}")
+            self.serial_send.setText(str(self.sent_count_num))
             self.receive_count_num = 0
-            self.serial_receive = QLabel(f"已接收：{self.receive_count_num}")
+            self.serial_receive.setText(str(self.receive_count_num))
 
     # 发送
     def send_text(self, send_string) -> None:
@@ -529,7 +528,9 @@ class SerialSetting(SerialUi):
         """清空串口日志数据"""
         self.receive_log_view.clear()
         self.receive_count_num = 0
+        self.serial_receive.setText(str(self.receive_count_num))
 
     def clear_send_data_view(self) -> None:
         """清空发送数据"""
         self.send_count_num = 0
+        self.serial_send.setText(str(self.send_count_num))
