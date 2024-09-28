@@ -171,8 +171,10 @@ class SerialUi(QWidget, Throw_errs):
 
         self.sins_cb_hex_receive = QCheckBox('HEX接收')
         self.sins_cb_hex_send = QCheckBox('HEX发送')
+        self.clear_data_view = QPushButton('清空')
         serial_send_gridlayout.addWidget(self.sins_cb_hex_receive, 3, 0)
         serial_send_gridlayout.addWidget(self.sins_cb_hex_send, 3, 1)
+        serial_send_gridlayout.addWidget(self.clear_data_view, 3, 2)
 
         serial_send_gridlayout.setSpacing(15)
         serial_send_vlayout.addLayout(serial_send_gridlayout)
@@ -280,19 +282,22 @@ class SerialUi(QWidget, Throw_errs):
         self.set_button = QPushButton('设置')
         check_status_gridlayout.addWidget(self.set_button, 0, 2)
         # 传感器温度查看一栏
-        self.check_temperature = QLineEdit()
-        check_status_gridlayout.addWidget(self.check_temperature, 1, 0)
+        self.check_temperature_value = QLineEdit()
+        check_status_gridlayout.addWidget(self.check_temperature_value, 1, 0)
         self.symbol_temperature = QLabel('℃')
         check_status_gridlayout.addWidget(self.symbol_temperature, 1, 1)
-        self.check_button = QPushButton('查看')
-        check_status_gridlayout.addWidget(self.check_button, 1, 2)
+        self.check_button_tem = QPushButton('查看')
+        check_status_gridlayout.addWidget(self.check_button_tem, 1, 2)
         # 传感器湿度查看一栏
-        self.check_humidity = QLineEdit()
-        check_status_gridlayout.addWidget(self.check_humidity, 2, 0)
+        self.check_humidity_value = QLineEdit()
+        check_status_gridlayout.addWidget(self.check_humidity_value, 2, 0)
         self.symbol_humidity = QLabel('%')
         check_status_gridlayout.addWidget(self.symbol_humidity, 2, 1)
-        self.check_button = QPushButton('查看')
-        check_status_gridlayout.addWidget(self.check_button, 2, 2)
+        self.check_button_hum = QPushButton('查看')
+        check_status_gridlayout.addWidget(self.check_button_hum, 2, 2)
+
+        self.clear_send_data = QPushButton('清空发送数据')
+        check_status_gridlayout.addWidget(self.clear_send_data, 3, 0, 1, 3)
 
         check_status_vlayout.addLayout(check_status_gridlayout)
         check_status_vlayout.setSpacing(10)  # 设置网格布局的间距
