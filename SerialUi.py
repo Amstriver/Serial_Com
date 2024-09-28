@@ -1,5 +1,5 @@
-from PyQt5.QtGui import QIcon, QRegExpValidator, QFont
-from PyQt5.QtCore import QRegExp, QTimer, QDateTime
+from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtCore import QTimer, QDateTime
 from PyQt5.QtWidgets import QWidget, QGridLayout, QDesktopWidget, QGroupBox, QFormLayout \
     , QPushButton, QComboBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QTextBrowser
 from Throw_errs import Throw_errs
