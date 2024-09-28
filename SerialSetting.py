@@ -113,6 +113,13 @@ class SerialSetting(SerialUi):
         self.save_data_button.clicked.connect(self.save_sensor_data)
         # 设置All checkbox 绑定槽
         self.sensor_check_all.clicked.connect(self.all_check_box_changed)
+        # 设置清空串口日志 绑定槽
+        self.clear_data_view.clicked.connect(self.clear_serial_data)
+        # 设置清空发送数据 绑定槽
+        self.clear_send_data.clicked.connect(self.clear_send_data_view)
+        # 设置查看温度、湿度 绑定槽
+        self.check_button_tem.clicked.connect(self.check_temperature)
+        self.check_button_hum.clicked.connect(self.check_humidity)
 
 
     # 获取端口号
@@ -248,27 +255,42 @@ class SerialSetting(SerialUi):
     def setting_temperature(self) -> None:
         # 获取需要发送的字符串
         send_string = self.set_temperature.text()
-        self.send_text(send_string)
+        if send_string:
+            self.send_text(send_string)
+        else:
+            QMessageBox.warning(self, 'Port Warning', '请输入需要发送的内容！')
 
     # # 设置传感器数据 显示布局 按键槽
     def ser_smax(self) -> None:
         scale_div = self.sensor_curve.axisScaleDiv(QwtPlot.yLeft)
         restrict_mval = self.serial_max_content.text()
-        self.ymax_restrict = float(restrict_mval)
-        self.sensor_curve.setAxisScale(QwtPlot.yLeft, scale_div.lowerBound(), self.ymax_restrict) 
-        self.sensor_curve.replot()
+        if restrict_mval:
+            self.ymax_restrict = float(restrict_mval)
+            self.sensor_curve.setAxisScale(QwtPlot.yLeft, scale_div.lowerBound(), self.ymax_restrict) 
+            self.sensor_curve.replot()
+        else:
+            QMessageBox.warning(self, 'Port Warning', '请先输入数值！')
+            return None
     def ser_smin(self) -> None:
         scale_div = self.sensor_curve.axisScaleDiv(QwtPlot.yLeft)
         restrict_mval = self.serial_min_content.text()
-        self.ymin_restrict = float(restrict_mval)
-        self.sensor_curve.setAxisScale(QwtPlot.yLeft, self.ymin_restrict, scale_div.upperBound()) 
-        self.sensor_curve.replot()
+        if restrict_mval:
+            self.ymin_restrict = float(restrict_mval)
+            self.sensor_curve.setAxisScale(QwtPlot.yLeft, self.ymin_restrict, scale_div.upperBound()) 
+            self.sensor_curve.replot()
+        else:
+            QMessageBox.warning(self, 'Port Warning', '请先输入数值！')
+            return None
     def ser_stime(self) -> None:
         scale_div = self.sensor_curve.axisScaleDiv(QwtPlot.xBottom)
         restrict_mval = self.serial_time_content.text()
-        self.time_restrict = float(restrict_mval)
-        self.sensor_curve.setAxisScale(QwtPlot.xBottom, scale_div.lowerBound(), self.time_restrict)
-        self.sensor_curve.replot()
+        if restrict_mval:
+            self.time_restrict = float(restrict_mval)
+            self.sensor_curve.setAxisScale(QwtPlot.xBottom, scale_div.lowerBound(), self.time_restrict)
+            self.sensor_curve.replot()
+        else:
+            QMessageBox.warning(self, 'Port Warning', '请先输入数值！')
+            return None
 
     # 接收数据
     def receive_data(self) -> None:
@@ -304,6 +326,26 @@ class SerialSetting(SerialUi):
                     self.update_sensor_data()
             else:
                 pass
+
+    # 设置温度、湿度查看一栏
+    def check_temperature(self) -> None:
+        """查看温度"""
+        data_str = self.value.strip()
+        parts = data_str.split('/')  # 使用'/'拆分字符串  
+        for part in parts:  
+            if part.startswith('t'):  # 查找以't'开头的部分  
+                temperature = part[1:]  # 提取't'后面的数据  
+                self.check_temperature_value.setText(temperature)
+
+    def check_humidity(self) -> None:
+        """查看湿度"""
+        data_str = self.value.strip() 
+        parts = data_str.split('/')  # 使用'/'拆分字符串  
+        for part in parts:  
+            if part.startswith('h'):  # 查找以'h'开头的部分  
+                humidity = part[1:]  # 提取'h'后面的数据  
+                self.check_humidity_value.setText(humidity)
+
     # 设置开始、关闭采集、清空数据、保存数据一栏
     def start_collect(self) -> None:
         """开始采集"""
@@ -395,7 +437,8 @@ class SerialSetting(SerialUi):
         # 弹窗选择保存的文件类型和路径  
         file_dialog = QFileDialog(self)  
         file_dialog.setFileMode(QFileDialog.AnyFile)  
-        file_dialog.setNameFilter("CSV Files (*.csv);;Text Files (*.txt);;Excel Files (*.xlsx)")  
+        # file_dialog.setNameFilter("CSV Files (*.csv);;Text Files (*.txt);;Excel Files (*.xlsx)")  
+        file_dialog.setNameFilter("CSV Files (*.csv)")  
         if file_dialog.exec_():  
             selected_files = file_dialog.selectedFiles()  
             file_path = selected_files[0]  
@@ -413,83 +456,53 @@ class SerialSetting(SerialUi):
                 return  
             
             QMessageBox.information(self, 'Information', f'Data saved to {file_path}')  
-  
+
     def save_data_as_csv(self, file_path: str) -> None:  
         """将数据保存为CSV文件，仅保存被勾选的传感器的数据"""  
         with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:  
             writer = csv.writer(csvfile)  
+            # 修正表头以匹配数据写入的格式  
+            csv_list = ['Time', 'sensor1', 'Time', 'sensor2', 'Time', 'sensor3', 'Time', 'sensor4',
+                         'Time', 'sensor5', 'Time', 'sensor6', 'Time', 'sensor7', 'Time', 'sensor8']  
             # 写入表头  
-            writer.writerow(['Time'] + [f'Sensor {i+1} Value' for i in range(8)])  
-    
-            # 所有传感器的时间戳是相同的（同时采样）  
-            # 找到最长的数据列表来确定循环次数  
+            writer.writerow(csv_list)  
+            
+            # 假设传感器数量和数据长度  
+            sensor_count = 8  
             max_length = 0  
-            for i in range(1, 9):  
+            for i in range(1, sensor_count + 1):  
                 xdata_var_name = f'sensor{i}_xdata'  
                 ydata_var_name = f'sensor{i}_ydata'  
-                xdata = getattr(self, xdata_var_name)  
-                ydata = getattr(self, ydata_var_name)  
+                xdata = getattr(self, xdata_var_name, [])  
+                ydata = getattr(self, ydata_var_name, [])  
                 max_length = max(max_length, len(xdata), len(ydata))  
-            # 遍历时间戳，对于每个时间戳，检查是否有对应传感器的数据  
+            
+            # 初始化行数据，长度为表头长度的两倍  
+            row_data = [None] * (sensor_count * 2)  
+            
+            # 遍历数据  
             for t in range(max_length):  
-                row = [None] * (1 + 8)  # 后面8个位置留给传感器值  
-                row[0] = t  # 这里假设时间戳是从0开始的整数索引（实际实现中可能需要调整）  
-    
-                for i in range(1, 9):  
+                for i in range(1, sensor_count + 1):  
                     xdata_var_name = f'sensor{i}_xdata'  
                     ydata_var_name = f'sensor{i}_ydata'  
-                    xdata = getattr(self, xdata_var_name)  
-                    ydata = getattr(self, ydata_var_name)  
-    
+                    xdata = getattr(self, xdata_var_name, [])  
+                    ydata = getattr(self, ydata_var_name, [])  
+                    
                     check_box_var_name = f'sensor_check{i}'  
                     check_box = getattr(self, check_box_var_name)  
-    
-                    if check_box.isChecked() and t < len(ydata):  
-                        row[i] = ydata[t]  # 如果复选框被勾选且有数据，则保存该数据   
-
-            writer.writerow(row) 
-    
-    # def save_data_as_txt(self, file_path: str) -> None:  
-    #     """将数据保存为TXT文件，仅保存被勾选的传感器的数据"""  
-    #     with open(file_path, 'w', encoding='utf-8') as txtfile:  
-    #         # 为每个传感器都写一个表头  
-    #         txtfile.write('Time')  
-    #         for i in range(1, 9):  
-    #             check_box_var_name = f'sensor_check{i}'  
-    #             check_box = getattr(self, check_box_var_name)  
-    #             if check_box.isChecked():  
-    #                 txtfile.write(f',Sensor {i} Value')  
-    #         txtfile.write('\n')  
-    
-    #         # 找到最长的数据长度  
-    #         max_length = 0  
-    #         for i in range(1, 9):  
-    #             xdata_var_name = f'sensor{i}_xdata'  
-    #             xdata = getattr(self, xdata_var_name)  
-    #             max_length = max(max_length, len(xdata))  
-    
-    #         # 遍历时间戳，保存数据  
-    #         for t in range(max_length):  
-    #             row = [str(t)]  # 时间戳是从0开始的整数  
-    #             for i in range(1, 9):  
-    #                 check_box_var_name = f'sensor_check{i}'  
-    #                 xdata_var_name = f'sensor{i}_xdata'  
-    #                 ydata_var_name = f'sensor{i}_ydata'  
-    #                 check_box = getattr(self, check_box_var_name)  
-    #                 xdata = getattr(self, xdata_var_name)  
-    #                 ydata = getattr(self, ydata_var_name)  
-    
-    #                 if check_box.isChecked() and t < len(ydata):  
-    #                     row.append(str(ydata[t]))  
-    #                 else:  
-    #                     row.append('')  # 如果未勾选或数据不足，则添加空字符串  
-    
-    #             txtfile.write(','.join(row) + '\n')
-    
-    # def save_data_as_xlsx(self, file_path: str) -> None:  
-    #     """将数据保存为XLSX文件"""  
-    #     df = pd.DataFrame({'Time': self.sensor_xdata, 'Sensor Value': self.sensor_ydata})  
-    #     df.to_excel(file_path, index=False)
+                    
+                    # 根据复选框状态和数据长度来设置行数据  
+                    if check_box.isChecked() and t < len(xdata) and t < len(ydata):  
+                        # 时间戳和传感器数据在行中的位置是交叉的，计算正确的索引  
+                        time_index = (i - 1) * 2  
+                        sensor_index = time_index + 1  
+                        row_data[time_index] = xdata[t]  # 保存时间戳  
+                        row_data[sensor_index] = ydata[t]  # 保存传感器数据  
+                
+                # 写入当前时间戳下所有勾选传感器的数据  
+                writer.writerow(row_data)  
+                # 重置行数据以供下一轮使用  
+                row_data = [None] * (sensor_count * 2)
 
     def all_check_box_changed(self) -> None:
         """全选或全不选复选框状态改变时调用"""
@@ -511,3 +524,12 @@ class SerialSetting(SerialUi):
             self.sensor_check6.setChecked(False)
             self.sensor_check7.setChecked(False)
             self.sensor_check8.setChecked(False)
+
+    def clear_serial_data(self) -> None:
+        """清空串口日志数据"""
+        self.receive_log_view.clear()
+        self.receive_count_num = 0
+
+    def clear_send_data_view(self) -> None:
+        """清空发送数据"""
+        self.send_count_num = 0
